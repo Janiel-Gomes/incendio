@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireGuard Pro - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0b0f1a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-fire: #ff4d4d;
+            --accent-safe: #00e676;
+            --accent-blue: #2979ff;
+            --text: #ffffff;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(41, 121, 255, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(255, 77, 77, 0.05) 0%, transparent 40%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            padding: 1.5rem;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent-fire);
+        }
+
+        .status-pill {
+            padding: 0.6rem 1.2rem;
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-online {
+            color: var(--accent-safe);
+            background: rgba(0, 230, 118, 0.1);
+        }
+
+        .status-offline {
+            color: var(--accent-fire);
+            background: rgba(255, 77, 77, 0.1);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            padding: 2.5rem;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-blue);
+        }
+
+        .card.fire-alert::before {
+            background: var(--accent-fire);
+        }
+
+        .card.fire-alert {
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(255, 77, 77, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+            }
+        }
+
+        .card-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .card-value {
+            font-size: 5rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-unit {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            vertical-align: super;
+        }
+
+        .status-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .risk-zone {
+            grid-column: 1 / -1;
+            padding: 3rem;
+            text-align: center;
+        }
+
+        .main-status {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: -1px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-fire));
+            transition: width 1s ease-out;
+        }
+
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-value {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="logo">🔥 <span>FireGuard</span> Pro</div>
+            <div id="connection" class="status-pill status-online">● Buscando Dados</div>
+        </header>
+
+        <div class="grid">
+            <!-- Temperatura -->
+            <div class="card">
+                <div class="card-label">Temperatura Ambiente</div>
+                <div class="card-value"><span id="temp">--</span><span class="unit">°C</span></div>
+                <div id="temp-hint" style="color: var(--text-muted); font-size: 0.9rem;">Pico W Internal Sensor</div>
+            </div>
+
+            <!-- Sensor de Chama -->
+            <div class="card" id="flame-card">
+                <div class="card-label">Sensor de Chama (D0)</div>
+                <div class="status-text" id="flame-val" style="font-size: 3rem;">Aguardando...</div>
+                <div id="flame-desc" style="color: var(--text-muted); margin-top: 1rem;">Monitoramento Ativo</div>
+            </div>
+
+            <!-- Risco Global -->
+            <div class="card risk-zone" id="risk-card">
+                <div class="card-label">Análise de Risco em Tempo Real</div>
+                <div class="main-status" id="status-text">AGUARDANDO CONEXÃO</div>
+
+                <div class="progress-container">
+                    <div class="progress-bar" id="prob-bar"></div>
+                </div>
+
+                <div
+                    style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.9rem;">
+                    <span>Probabilidade de Incêndio</span>
+                    <span><span id="prob">0</span>%</span>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            IoT Monitoring System v2.0 - RP2040 FreeRTOS Template
+        </footer>
+    </div>
+
+    <script>
+        async function updateData() {
+            try {
+                const response = await fetch('/last_event');
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+
+                // Temperatura
+                document.getElementById('temp').innerText = data.temperature.toFixed(1);
+
+                // Sensor de Chama
+                const flameVal = document.getElementById('flame-val');
+                const flameCard = document.getElementById('flame-card');
+                flameVal.innerText = data.flame_text || "Normal";
+
+                if (data.flame === 0) {
+                    flameVal.style.color = "var(--accent-fire)";
+                    flameCard.classList.add('fire-alert');
+                } else {
+                    flameVal.style.color = "var(--accent-safe)";
+                    flameCard.classList.remove('fire-alert');
+                }
+
+                // Status Geral
+                const statusText = document.getElementById('status-text');
+                const riskCard = document.getElementById('risk-card');
+                const probBar = document.getElementById('prob-bar');
+                const probText = document.getElementById('prob');
+
+                const probability = data.probability * 100;
+                probText.innerText = probability.toFixed(1);
+                probBar.style.width = probability + "%";
+
+                statusText.innerText = data.status.toUpperCase();
+
+                if (data.flame === 0 || data.probability > 0.7) {
+                    statusText.style.color = "var(--accent-fire)";
+                    riskCard.classList.add('fire-alert');
+                } else {
+                    statusText.style.color = "var(--text)";
+                    riskCard.classList.remove('fire-alert');
+                }
+
+                document.getElementById('connection').className = "status-pill status-online";
+                document.getElementById('connection').innerHTML = "● Sistema Online";
+
+            } catch (e) {
+                document.getElementById('connection').className = "status-pill status-offline";
+                document.getElementById('connection').innerHTML = "○ Aguardando Pico W...";
+            }
+        }
+
+        setInterval(updateData, 2000);
+        updateData();
+    </script>
+</body>
+
+</html>
