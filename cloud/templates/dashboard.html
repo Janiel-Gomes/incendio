@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FireGuard IoT - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent-fire: #ef4444;
+            --accent-safe: #10b981;
+            --text-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            padding: 2rem 0;
+            text-align: center;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: -1px;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .value {
+            font-size: 4rem;
+            font-weight: 600;
+            margin: 1rem 0;
+        }
+
+        .unit {
+            font-size: 1.5rem;
+            color: #94a3b8;
+        }
+
+        .label {
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+        }
+
+        .alert-card {
+            grid-column: 1 / -1;
+            padding: 3rem;
+        }
+
+        .status-normal {
+            background-color: rgba(16, 185, 129, 0.2);
+            color: var(--accent-safe);
+            border: 1px solid var(--accent-safe);
+        }
+
+        .status-fire {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: var(--accent-fire);
+            border: 1px solid var(--accent-fire);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>FireGuard AI Monitor</h1>
+        <div id="connection-status" class="status-badge status-normal">Conectado ao Servidor</div>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <div class="label">Temperatura</div>
+            <div class="value"><span id="temp">--</span><span class="unit">°C</span></div>
+        </div>
+        <div class="card" id="flame-card">
+            <div class="label">Sensor de Chama</div>
+            <div class="value" id="flame-val" style="font-size: 2.5rem; margin-top: 1.5rem;">Aguardando</div>
+        </div>
+
+        <div class="card alert-card" id="alert-zone">
+            <div class="label">Status de Risco (IA)</div>
+            <div class="value" id="status-text">AGUARDANDO DADOS</div>
+            <div id="prob-bar"
+                style="height: 10px; width: 0%; background: var(--accent-fire); border-radius: 5px; margin-top: 1rem; transition: width 0.5s;">
+            </div>
+            <div class="label" style="margin-top: 0.5rem;">Probabilidade: <span id="prob">0</span>%</div>
+        </div>
+    </div>
+
+    <script>
+        async function updateDashboard() {
+            try {
+                // Busca o último evento registrado no backend
+                // Mudança para caminho relativo para funcionar se estiver rodando no mesmo servidor
+                const response = await fetch('/last_event');
+                if (!response.ok) throw new Error('Dados não disponíveis');
+
+                const data = await response.json();
+
+                // Atualiza a UI com dados reais
+                document.getElementById('temp').innerText = data.temperature.toFixed(1);
+                
+                // Atualiza o card de Chama
+                const flameVal = document.getElementById('flame-val');
+                flameVal.innerText = data.flame_text || "Normal";
+                
+                if (data.flame === 0) {
+                    flameVal.style.color = "var(--accent-fire)";
+                    document.getElementById('flame-card').style.border = "2px solid var(--accent-fire)";
+                } else {
+                    flameVal.style.color = "var(--accent-safe)";
+                    document.getElementById('flame-card').style.border = "none";
+                }
+
+                const prob = data.probability;
+                document.getElementById('prob').innerText = (prob * 100).toFixed(1);
+                document.getElementById('prob-bar').style.width = (prob * 100) + "%";
+
+                const isFire = (data.flame === 0 || prob > 0.7);
+                const msg = isFire ? "INCÊNDIO DETECTADO" : "SISTEMA NORMAL";
+                document.getElementById('status-text').innerText = msg;
+                document.getElementById('alert-zone').className = isFire ? "card alert-card status-fire" : "card alert-card status-normal";
+
+                document.getElementById('connection-status').innerText = "Conectado - Dados em Tempo Real";
+                document.getElementById('connection-status').className = "status-badge status-normal";
+
+            } catch (e) {
+                console.log("Aguardando novos dados...", e);
+                document.getElementById('connection-status').innerText = "Aguardando novos dados...";
+                document.getElementById('connection-status').className = "status-badge status-fire";
+            }
+        }
+
+        // Verifica atualizações a cada 3 segundos
+        setInterval(updateDashboard, 3000);
+
+        // Chamada inicial imediata
+        updateDashboard();
+    </script>
+</body>
+
+</html>
